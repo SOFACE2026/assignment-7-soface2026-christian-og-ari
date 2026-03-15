@@ -19,6 +19,11 @@ public:
     // multiply elements with a constant factor on the calling thread
     void multiply_single_threaded(T factor)
     {
+        for (auto &val : data)
+        {
+            val *= factor;
+        }
+
     }
 
     // split the matrix in n parts and use multiple spawn one thread per paSrtition to perform the multiplication.
@@ -56,8 +61,10 @@ public:
         std::vector<std::thread> workers;
         for (auto &t : slices)
         {
-            // IMPLEMENT THIS
-            // spawn new thread for each partition, to carry out the `multiply_slice` function.
+            for (auto it = begin; it != end; ++it)
+            {
+                *it *= factor;
+            }
         }
 
         // 3) It is important that the `iterators` vector used witin the thread is not freed prematurely
@@ -65,8 +72,17 @@ public:
         // this ensures that the full computation is done when this function returns
         for (auto &worker : workers)
         {
-            // IMPLEMENT THIS
+            if (worker.joinable())
+            {
+                worker.join();
+            }
         }
+
+        // for at svare på 4 om vi harb rug for en mutex eller ej
+        // det er ikke nødvendig da hver tråd arbejder på sin unikke del af data vektoren, og der er ingen deling af data mellem trådene.
+        // Derfor er der ingen risiko for at de to tråde skriver til samme memory location på samme tid, og der
+        // opstår derfor ikke en race condition (og da vi ikke har brug for det vil det kun slow down vores kode at bruge en mutex)
+
     }
 
     void set(size_t row, size_t col, T value)
